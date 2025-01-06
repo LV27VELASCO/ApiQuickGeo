@@ -1,0 +1,11 @@
+Flask==3.1.0
+flask-cors==5.0.0
+Werkzeug==3.1.3
+Jinja2==3.1.5
+itsdangerous==2.2.0
+click==8.1.8
+blinker==1.9.0
+opencage==3.0.4
+folium==0.19.3
+phonenumbers==.13.52
+pydantic==2.10.4
