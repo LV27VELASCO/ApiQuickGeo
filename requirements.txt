@@ -9,4 +9,4 @@ opencage==3.0.4
 folium==0.19.3
 phonenumbers==8.13.52
 pydantic==2.10.4
-gunicorn=23.0.0
+gunicorn==23.0.0
