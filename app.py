@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 # Habilitar CORS para todas las rutas
-CORS(app, resources={ r"/*": {"origins": ["http://localhost:4200"]}})
+CORS(app, resources={ r"/*": {"origins": ["http://localhost:4200","https://fullgeoclone.netlify.app"]}})
 
 # Modelo de entrada
 class PhoneNumberInput(BaseModel):
