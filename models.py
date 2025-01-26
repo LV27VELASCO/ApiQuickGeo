@@ -19,3 +19,14 @@ class SendSmsInput(BaseModel):
 class SendSmsOut(BaseModel):
     status:bool
     description: str
+    
+# Modelo de salida send-sms
+class SaveLocationInput(BaseModel):
+    user_id:str
+    latitude: float
+    longitude:float
+    timestamp: str
+    
+class SaveLocationOut(BaseModel):
+    code:str
+    description: str

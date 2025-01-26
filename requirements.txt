@@ -11,3 +11,4 @@ phonenumbers==8.13.52
 pydantic==2.10.4
 gunicorn==23.0.0
 vonage
+python-dotenv
