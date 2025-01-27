@@ -19,7 +19,7 @@ load_dotenv()
 
 app = Flask(__name__)
 # Habilitar CORS para todas las rutas
-CORS(app, resources={ r"/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:5500","https://fullgeoclone.netlify.app"]}})
+CORS(app, resources={ r"/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:5500","https://fullgeolocation.netlify.app","https://fullgeoclone.netlify.app"]}})
 
 
 @app.route('/api/phone-info', methods=['POST'])
