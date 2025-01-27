@@ -17,6 +17,7 @@ class PhoneNumberOut(BaseModel):
 class SendSmsInput(BaseModel):
     code:str
     phone_number: str
+    country: str
     uuid:str
 
 # Modelo de salida send-sms

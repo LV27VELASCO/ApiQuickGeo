@@ -74,6 +74,7 @@ def send_sms():
         code = data.code
         phone_number = data.phone_number
         uuid = data.uuid
+        country = data.country
         
         SUPABASE_URL = os.environ.get("SUPABASE_URL")
         SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -114,7 +115,7 @@ def send_sms():
                 smsstatus = "error al enviar"
                 statusCode = 500
                 response = SendSmsOut(status=False, description="Ocurrió un error en el envio del mensaje")
-            dataResponse = (supabase.table("locationrequests").insert({"status":"pendiente","smsstatus": smsstatus, "createdat": timestamp.isoformat(), "phonenumber": phone_number, "codecountry": code, "clientuuid": uuid}).execute())
+            dataResponse = (supabase.table("locationrequests").insert({"status":"pendiente","smsstatus": smsstatus, "createdat": timestamp.isoformat(), "phonenumber": phone_number, "codecountry": code, "clientuuid": uuid, "country":country}).execute())
         else:
             statusCode = 500
             response = SendSmsOut(status=False, description="Cliente no existe")
