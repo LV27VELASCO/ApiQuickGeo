@@ -7,13 +7,17 @@ class PhoneNumberInput(BaseModel):
 
 # Modelo de salida phone-info
 class PhoneNumberOut(BaseModel):
+    status:bool
+    description: str
     country: str
     operator: str
+    uuid:str
 
 # Modelo de entrada send-sms
 class SendSmsInput(BaseModel):
     code:str
     phone_number: str
+    uuid:str
 
 # Modelo de salida send-sms
 class SendSmsOut(BaseModel):
@@ -22,7 +26,7 @@ class SendSmsOut(BaseModel):
     
 # Modelo de salida send-sms
 class SaveLocationInput(BaseModel):
-    user_id:str
+    user_uuid:str
     latitude: float
     longitude:float
     timestamp: str
