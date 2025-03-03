@@ -139,6 +139,7 @@ def save_location():
         latitude = data.latitude
         longitude = data.longitude
         timestamp = data.timestamp
+        country = data.city
         
         SUPABASE_URL = os.environ.get("SUPABASE_URL")
         SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -147,7 +148,7 @@ def save_location():
         dataResponse = (supabase.table("locationrequests").select("clientuuid").eq("clientuuid",user_uuid).execute())
         response_data = json.loads(dataResponse.model_dump_json())
         if len(response_data['data']) != 0:
-            dataResponse = (supabase.table("locations").insert({"clientuuid": user_uuid, "latitude": latitude, "longitude": longitude, "accuracy": "","capturedat": timestamp}).execute())
+            dataResponse = (supabase.table("locations").insert({"clientuuid": user_uuid, "latitude": latitude, "longitude": longitude, "accuracy": "","city": country ,"capturedat": timestamp}).execute())
             statusCode = 201
             response = SaveLocationOut(code="00", description="Datos recibidos")
         else:
