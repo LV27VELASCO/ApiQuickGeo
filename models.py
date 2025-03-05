@@ -30,7 +30,8 @@ class SaveLocationInput(BaseModel):
     user_uuid:str
     latitude: float
     longitude:float
-    timestamp: str
+    timestamp: str  
+    city:str
     
 class SaveLocationOut(BaseModel):
     code:str
