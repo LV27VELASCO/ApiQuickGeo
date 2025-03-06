@@ -13,3 +13,4 @@ gunicorn==23.0.0
 vonage
 python-dotenv
 supabase
+stripe

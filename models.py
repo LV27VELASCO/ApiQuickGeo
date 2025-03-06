@@ -11,7 +11,6 @@ class PhoneNumberOut(BaseModel):
     description: str
     country: str
     operator: str
-    uuid:str
 
 # Modelo de entrada send-sms
 class SendSmsInput(BaseModel):
@@ -36,3 +35,10 @@ class SaveLocationInput(BaseModel):
 class SaveLocationOut(BaseModel):
     code:str
     description: str
+
+class AccountVerificationInput(BaseModel):
+    email:str
+
+class AccountVerificationOut(BaseModel):
+    codigo:str
+    descripcion:str

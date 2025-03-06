@@ -1,18 +1,21 @@
 import os
 import json
 import folium
+import hashlib
 import phonenumbers
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, redirect, jsonify, json, request, current_app
 from flask_cors import CORS
 from phonenumbers import carrier, geocoder
 from pydantic import ValidationError
 from vonage import Auth, Vonage
 from vonage_sms import SmsMessage, SmsResponse
 
-from models import PhoneNumberInput, PhoneNumberOut, SendSmsInput, SendSmsOut, SaveLocationInput, SaveLocationOut
+from models import PhoneNumberInput, PhoneNumberOut, SendSmsInput, SendSmsOut, SaveLocationInput, SaveLocationOut, AccountVerificationInput, AccountVerificationOut
 from supabase import create_client, Client
 from datetime import datetime
+
+import stripe
 
 load_dotenv()
 
@@ -21,6 +24,34 @@ app = Flask(__name__)
 # Habilitar CORS para todas las rutas
 CORS(app, resources={ r"/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:5500","https://fullgeolocation.netlify.app","https://fullgeoclone.netlify.app"]}})
 
+@app.route('/checkout', methods=['POST'])
+def checkout():
+    lookup_key = request.json.get('lookup_key')
+    
+    try:
+        FULLGEO_DOMAIN = os.environ.get("DOMAIN")
+        stripe.api_key = os.environ.get("SECRET_KEY")
+
+        prices = stripe.Price.list(
+            lookup_keys=[lookup_key],
+            expand=['data.product']
+        )
+
+        session = stripe.checkout.Session.create(
+            billing_address_collection='auto',
+            payment_method_types=['card'],
+            line_items=[{
+                'price': prices['data'][0]['id'],
+                'quantity': 1
+            }],
+            mode='subscription',
+            success_url=f'https://www.facebook.com/',
+            cancel_url=f'{FULLGEO_DOMAIN}/cancel.html',
+        )
+
+        return jsonify(session), 200
+    except Exception as e:
+        return jsonify(error=str(e)), 400
 
 @app.route('/api/phone-info', methods=['POST'])
 def get_phone_info():
@@ -41,28 +72,45 @@ def get_phone_info():
         # Obtenemos el país y operador
         country = geocoder.description_for_number(parsed_number, code_lang)  # País en inglés
         operator = carrier.name_for_number(parsed_number, code_lang)  # Operador en inglés
-
-        timestamp = datetime.now()
-        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-        dataResponse = (
-            supabase.table("clients")
-            .insert({"email": "", "password": "", "name": "", "createdat": timestamp.isoformat()})
-            .execute())
-        response_data = json.loads(dataResponse.model_dump_json())
-        uuid = response_data['data'][0]['uuid']
         # Modelo de salida
-        response = PhoneNumberOut(status=True,description="Exitoso",country=country, operator=operator,uuid=uuid)
+        response = PhoneNumberOut(status=True,description="Exitoso",country=country, operator=operator)
         return jsonify(response.model_dump()), 200
     except ValidationError as e:
-        response = PhoneNumberOut(status=False,description=str(e),country="", operator="",uuid="")
+        response = PhoneNumberOut(status=False,description=str(e),country="", operator="")
         return jsonify(response.model_dump()), 400
     except phonenumbers.phonenumberutil.NumberParseException as e:
-        response = PhoneNumberOut(status=False,description=str(e),country="", operator="",uuid="")
+        response = PhoneNumberOut(status=False,description=str(e),country="", operator="")
         return jsonify(response.model_dump()), 400
     except Exception as e:
-        response = PhoneNumberOut(status=False,description=str(e),country="", operator="",uuid="")
+        response = PhoneNumberOut(status=False,description=str(e),country="", operator="")
         return jsonify(response.model_dump()), 500
     
+
+
+
+# @app.route('/api/account-verification',methods=['POST'])
+# def account_verification():
+#     response:AccountVerificationOut
+#     try:
+#         data = AccountVerificationInput.model_validate(request.json)
+#         email = data.email
+
+#         SUPABASE_URL = os.environ.get("SUPABASE_URL")
+#         SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+#         timestamp = datetime.now()
+#         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        
+#         suscribeRes = (supabase.table("suscriptions").insert({"status": "", "created_at": timestamp.isoformat()}).execute())
+#         suscribeRes = json.loads(suscribeRes.model_dump_json())
+#         susId = suscribeRes['data'][0]['suscription_id']
+
+#         suscribeRes = (supabase.table("suscriptions").insert({"status": "", "created_at": timestamp.isoformat()}).execute())
+        
+#         response_data = json.loads(dataResponse.model_dump_json())
+        
+#     except Exception as e:
+
+
 
 @app.route('/api/send-sms', methods=['POST'])
 def send_sms():
@@ -148,6 +196,7 @@ def save_location():
         dataResponse = (supabase.table("locationrequests").select("clientuuid").eq("clientuuid",user_uuid).execute())
         response_data = json.loads(dataResponse.model_dump_json())
         if len(response_data['data']) != 0:
+            dataResponse = (supabase.table("locationrequests").update({"status": "localizado"}).eq({}).execute())
             dataResponse = (supabase.table("locations").insert({"clientuuid": user_uuid, "latitude": latitude, "longitude": longitude, "accuracy": "","city": country ,"capturedat": timestamp}).execute())
             statusCode = 201
             response = SaveLocationOut(code="00", description="Datos recibidos")
