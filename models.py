@@ -42,3 +42,9 @@ class AccountVerificationInput(BaseModel):
 class AccountVerificationOut(BaseModel):
     codigo:str
     descripcion:str
+
+class CreateUserInput(BaseModel):
+    session_id:str
+
+class CreateUserOut(BaseModel):
+    codeUser:str

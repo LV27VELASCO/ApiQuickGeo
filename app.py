@@ -1,19 +1,22 @@
 import os
 import json
-import folium
-import hashlib
+import random
+import string
 import phonenumbers
 from dotenv import load_dotenv
-from flask import Flask, redirect, jsonify, json, request, current_app
+from flask import Flask, jsonify, json, request
 from flask_cors import CORS
 from phonenumbers import carrier, geocoder
 from pydantic import ValidationError
 from vonage import Auth, Vonage
 from vonage_sms import SmsMessage, SmsResponse
-
-from models import PhoneNumberInput, PhoneNumberOut, SendSmsInput, SendSmsOut, SaveLocationInput, SaveLocationOut, AccountVerificationInput, AccountVerificationOut
+from jinja2 import Environment, FileSystemLoader
+from models import CreateUserInput, CreateUserOut, PhoneNumberInput, PhoneNumberOut, SendSmsInput, SendSmsOut, SaveLocationInput, SaveLocationOut, AccountVerificationInput, AccountVerificationOut
 from supabase import create_client, Client
 from datetime import datetime
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import stripe
 
@@ -22,8 +25,14 @@ load_dotenv()
 
 app = Flask(__name__)
 # Habilitar CORS para todas las rutas
-CORS(app, resources={ r"/*": {"origins": ["http://localhost:4200", "http://127.0.0.1:5500","https://fullgeolocation.netlify.app","https://fullgeoclone.netlify.app"]}})
-
+# Configuración de CORS
+CORS(app, resources={
+    r"/*": {
+        "origins": ["http://localhost:4200", "http://127.0.0.1:5500", "https://fullgeolocation.netlify.app", "https://fullgeoclone.netlify.app"],
+        "methods": ["GET", "POST"],  # Métodos permitidos
+        "allow_headers": ["Content-Type", "Authorization"]  # Cabeceras permitidas
+    }
+})
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
     lookup_key = request.json.get('lookup_key')
@@ -45,13 +54,108 @@ def checkout():
                 'quantity': 1
             }],
             mode='subscription',
-            success_url=f'https://www.facebook.com/',
+            success_url=f'{FULLGEO_DOMAIN}/success?session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'{FULLGEO_DOMAIN}/cancel.html',
         )
-
         return jsonify(session), 200
     except Exception as e:
         return jsonify(error=str(e)), 400
+
+@app.route('/api/create-user', methods=['POST'])
+def create_user():
+    try:
+        data = CreateUserInput.model_validate(request.json)
+        session_id = data.session_id
+
+        stripe.api_key = os.environ.get("SECRET_KEY")
+        session = stripe.checkout.Session.retrieve(session_id)
+        # Extraer el correo electrónico del cliente desde la sesión
+        customerId = session.get('customer')
+        customer_email = session.get('customer_details', {}).get('email')
+        customer_name = session.get('customer_details', {}).get('name')
+        if customer_email:
+
+            customer_email = customer_email.lower()
+            SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+            SUPABASE_URL = os.environ.get("SUPABASE_URL")
+            supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+            # Verificar si el usuario ya existe
+            if user_exists_by_email(customer_email,supabase):
+                response = CreateUserOut(codeUser="")  # Código 3 para usuario ya existente
+                return jsonify(response.model_dump()), 409  # 409 Conflict
+            
+            timestamp = datetime.now()
+            customer_password = generate_password()
+            InsertUserRes = (supabase.table("users").insert({"email": customer_email, "password":customer_password,"verification_email": False , "suscripcion_id":customerId,"created_at": timestamp.isoformat()}).execute())
+            InsertUserRes = json.loads(InsertUserRes.model_dump_json())
+            userId = InsertUserRes['data'][0]['id']
+            send_email(customer_name,customer_email,customer_password)            
+            response = CreateUserOut(codeUser=userId)
+            return jsonify(response.model_dump()), 200
+        else:
+            #Correo no disponible
+            response = CreateUserOut(codeUser="")
+            return jsonify(response.model_dump()), 404
+    except Exception as e:
+        response = CreateUserOut(codeUser="")
+        return jsonify(response.model_dump()), 500
+
+
+def user_exists_by_email(email, supabase:Client):
+    # Realiza la consulta para verificar si el correo electrónico ya existe
+    response = supabase.table("users").select("id").eq("email", email).execute()
+    return len(response.data) > 0
+
+def send_email(nam,mail,passw):
+    htmlContent = build_template(nam,mail,passw)
+    # Configuración del servidor SMTP
+    smtp_server = "smtp.gmail.com"  # Servidor SMTP de Gmail
+    smtp_port = 587  # Puerto para TLS
+    smtp_user = "codsito27@gmail.com"  # Tu correo electrónico
+    smtp_password = os.environ.get("PASSWORD_APLICATION") # Tu contraseña de aplicación (no la de tu correo)
+
+    # Crear el mensaje
+    msg = MIMEMultipart()
+    msg['From'] = smtp_user
+    msg['To'] = mail  # Correo del destinatario
+    msg['Subject'] = "Fullgeo Credenciales"
+
+    # Adjuntar el contenido HTML
+    msg.attach(MIMEText(htmlContent, 'html'))
+
+    # Enviar el correo
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()  # Habilitar TLS
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, msg['To'], msg.as_string())
+        print("Correo enviado exitosamente.")
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
+
+
+def build_template(name,email,password):
+    env = Environment(loader=FileSystemLoader('.'))
+    template = env.get_template('emailtemplate.html')
+
+    # Datos dinámicos
+    datos = {
+        "name": name,
+        "email": email,
+        "password":password
+    }
+    # Renderizar la plantilla con los datos
+    html_content = template.render(datos)
+    return html_content
+
+def generate_password(longitud=8):
+    # Definir los caracteres permitidos
+    caracteres = string.ascii_letters + string.digits + string.punctuation
+    
+    # Generar la contraseña aleatoria
+    contraseña = ''.join(random.choice(caracteres) for _ in range(longitud))
+    
+    return contraseña
 
 @app.route('/api/phone-info', methods=['POST'])
 def get_phone_info():
