@@ -90,14 +90,14 @@ def create_user():
             InsertUserRes = json.loads(InsertUserRes.model_dump_json())
             userId = InsertUserRes['data'][0]['id']
             send_email(customer_name,customer_email,customer_password)            
-            response = CreateUserOut(codeUser=userId)
+            response = CreateUserOut(status=True)
             return jsonify(response.model_dump()), 200
         else:
             #Correo no disponible
-            response = CreateUserOut(codeUser="")
+            response = CreateUserOut(status=False)
             return jsonify(response.model_dump()), 404
     except Exception as e:
-        response = CreateUserOut(codeUser="")
+        response = CreateUserOut(status=False)
         return jsonify(response.model_dump()), 500
 
 

@@ -47,4 +47,4 @@ class CreateUserInput(BaseModel):
     session_id:str
 
 class CreateUserOut(BaseModel):
-    codeUser:str
+    status:bool = False
