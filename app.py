@@ -181,10 +181,12 @@ def send_sms():
         API_SECRET = os.environ.get("API_SECRET")
         BRAND_NAME = os.environ.get("BRAND_NAME")
         rl_uuid = uuid.uuid4()
+        print(API_KEY,API_SECRET)
         client = Vonage(Auth(api_key=API_KEY, api_secret=API_SECRET))
             
-            # Procesamos el número telefónico con phonenumbers
-        parsed_number:str = f"{code}{phone_number}"
+        # Procesamos el número telefónico con phonenumbers
+        code_number = code.replace("+", "")
+        parsed_number:str = f"{code_number}{phone_number}"
         linkApp:str = f'https://fullgeolocation.netlify.app?uuid={rl_uuid}'
         message = SmsMessage(
         to= parsed_number,
@@ -194,7 +196,8 @@ def send_sms():
         response_sms: SmsResponse = client.sms.send(message)
         smsstatus:str
         if hasattr(response_sms, "messages") and len(response_sms.messages) > 0:
-                # Acceder al primer mensaje en la lista
+            # Acceder al primer mensaje en la lista
+            print(response_sms)
             message = response_sms.messages[0]
             if message.status == "0":
                     # Modelo de salida
