@@ -181,7 +181,6 @@ def send_sms():
         API_SECRET = os.environ.get("API_SECRET")
         BRAND_NAME = os.environ.get("BRAND_NAME")
         rl_uuid = uuid.uuid4()
-        print(API_KEY,API_SECRET)
         client = Vonage(Auth(api_key=API_KEY, api_secret=API_SECRET))
             
         # Procesamos el número telefónico con phonenumbers
@@ -197,7 +196,6 @@ def send_sms():
         smsstatus:str
         if hasattr(response_sms, "messages") and len(response_sms.messages) > 0:
             # Acceder al primer mensaje en la lista
-            print(response_sms)
             message = response_sms.messages[0]
             if message.status == "0":
                     # Modelo de salida
