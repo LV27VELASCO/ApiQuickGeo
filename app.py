@@ -175,6 +175,7 @@ def send_sms():
         data = SendSmsInput.model_validate(request.json)
         code = data.code
         phone_number = data.phone_number
+        code_country = data.code_country
 
         API_KEY = os.environ.get("API_KEY")
         API_SECRET = os.environ.get("API_SECRET")
@@ -210,7 +211,7 @@ def send_sms():
             response = SendSmsOut(status=False, description="Ocurrió un error en el envio del mensaje")
         
         timestamp = datetime.now()
-        dataResponse = (supabase.table("locationrequests").insert({"requestid":str(rl_uuid),"status":False,"smsstatus": smsstatus, "createdat": timestamp.isoformat(),"codephone":code,"phonenumber": phone_number, "codecountry": code, "useruuid": id_user}).execute())
+        dataResponse = (supabase.table("locationrequests").insert({"requestid":str(rl_uuid),"status":False,"smsstatus": smsstatus, "createdat": timestamp.isoformat(),"codephone":code,"phonenumber": phone_number, "codecountry": code_country, "useruuid": id_user}).execute())
         return jsonify(response.model_dump()), statusCode
     except ValidationError as e:
         statusCode = 400
