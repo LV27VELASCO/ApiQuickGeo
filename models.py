@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 # Modelo de entrada phone-info
 class PhoneNumberInput(BaseModel):
     code:str
@@ -16,8 +17,7 @@ class PhoneNumberOut(BaseModel):
 class SendSmsInput(BaseModel):
     code:str
     phone_number: str
-    country: str
-    uuid:str
+    code_country:str
 
 # Modelo de salida send-sms
 class SendSmsOut(BaseModel):
@@ -26,15 +26,14 @@ class SendSmsOut(BaseModel):
     
 # Modelo de salida send-sms
 class SaveLocationInput(BaseModel):
-    user_uuid:str
+    rl_uuid:str
     latitude: float
     longitude:float
     timestamp: str  
     city:str
     
 class SaveLocationOut(BaseModel):
-    code:str
-    description: str
+    message:str
 
 class AccountVerificationInput(BaseModel):
     email:str
@@ -48,3 +47,25 @@ class CreateUserInput(BaseModel):
 
 class CreateUserOut(BaseModel):
     status:bool = False
+
+class LoginInput(BaseModel):
+    email:str
+    password:str
+
+class LoginOut(BaseModel):
+    message:str
+    token:str
+
+class Location(BaseModel):
+    latitude:float
+    longitude:float
+    capturedAt:str
+    city:str
+
+class LocationResponse(BaseModel):
+    status:bool
+    smsStatus:int
+    phoneNumber:str
+    codeCountry:str
+    createAt:str
+    location:List[Location]
