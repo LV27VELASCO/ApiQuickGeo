@@ -36,7 +36,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Habilitar CORS para todas las rutas
 # Configuración de CORS
-CORS(app, origins=["http://localhost:4200", "http://127.0.0.1:5500", "https://fullgeolocation.netlify.app", "https://fullgeoclone.netlify.app"], 
+CORS(app, origins=["http://localhost:4200", "http://127.0.0.1:5500", "https://quickgeolocation.netlify.app", "https://quickgeo.netlify.app"], 
      supports_credentials=True, 
      allow_headers=["Content-Type", "Authorization"], 
      methods=["GET", "POST", "OPTIONS"])
