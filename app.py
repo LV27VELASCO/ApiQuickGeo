@@ -189,7 +189,7 @@ def send_sms():
         linkApp:str = f'https://fullgeolocation.netlify.app?uuid={rl_uuid}'
         message = SmsMessage(
         to= parsed_number,
-        from_=BRAND_NAME,
+        from_='.',
         text=f"Localiza tu telefono aquí: {linkApp} .",
         )
         response_sms: SmsResponse = client.sms.send(message)
