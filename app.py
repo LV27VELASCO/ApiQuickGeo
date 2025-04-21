@@ -180,13 +180,14 @@ def send_sms():
         API_KEY = os.environ.get("API_KEY")
         API_SECRET = os.environ.get("API_SECRET")
         BRAND_NAME = os.environ.get("BRAND_NAME")
+        DOMAIN_LOCALIZE = os.environ.get("DOMAIN_LOCALIZATION")
         rl_uuid = uuid.uuid4()
         client = Vonage(Auth(api_key=API_KEY, api_secret=API_SECRET))
             
         # Procesamos el número telefónico con phonenumbers
         code_number = code.replace("+", "")
         parsed_number:str = f"{code_number}{phone_number}"
-        linkApp:str = f'https://fullgeolocation.netlify.app?uuid={rl_uuid}'
+        linkApp:str = f'{DOMAIN_LOCALIZE}?uuid={rl_uuid}'
         message = SmsMessage(
         to= parsed_number,
         from_='.',
