@@ -154,7 +154,7 @@ def login():
     email = data.email
     password = data.password
 
-    userData = exist_user(email,password)
+    userData = exist_user(email.lower(),password)
     if len(userData.data)<=0:
             response = LoginOut(message='Unauthorized',token='')
             return jsonify(response.model_dump()), 401
