@@ -69,3 +69,9 @@ class LocationResponse(BaseModel):
     codeCountry:str
     createAt:str
     location:List[Location]
+
+class ChatBot(BaseModel):
+    message:str
+
+class ChatBotOut(BaseModel):
+    response:str

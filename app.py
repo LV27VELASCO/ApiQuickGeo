@@ -12,14 +12,15 @@ from pydantic import ValidationError
 from vonage import Auth, Vonage
 from vonage_sms import SmsMessage, SmsResponse
 from jinja2 import Environment, FileSystemLoader
-from models import CreateUserInput, CreateUserOut, LocationResponse, LoginInput, LoginOut, PhoneNumberInput, PhoneNumberOut, SendSmsInput, SendSmsOut, SaveLocationInput, SaveLocationOut, AccountVerificationInput, AccountVerificationOut
+from models import CreateUserInput, CreateUserOut, LocationResponse, LoginInput, LoginOut, PhoneNumberInput, PhoneNumberOut, SendSmsInput, SendSmsOut, SaveLocationInput, SaveLocationOut, AccountVerificationInput, AccountVerificationOut, ChatBot, ChatBotOut
 from supabase import create_client, Client
 from datetime import datetime, timedelta
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required, JWTManager)
-
+from google import genai
+from google.genai import types
 import stripe
 
 load_dotenv()
@@ -32,8 +33,9 @@ jwt = JWTManager(app)
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-            
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+client = genai.Client(api_key=os.environ.get("GEMINI_KEY"))
+
 # Habilitar CORS para todas las rutas
 # Configuración de CORS
 CORS(app, origins=["http://localhost:4200", "http://127.0.0.1:5500", "https://quickgeolocation.netlify.app", "https://quickgeo.netlify.app"], 
@@ -269,6 +271,56 @@ def location_requests():
     except Exception as e:
         return jsonify(details=[]), 500
 
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.json
+    user_message = data.get("message", "")
+
+    try:
+        response = client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    config=types.GenerateContentConfig(
+                        system_instruction="""
+                                    Eres un asistente virtual de la Web QuickGeo.
+
+                                    Tu función es ayudar a los usuarios respondiendo sobre:
+                                    - Información general sobre QuickGeo
+                                    - Horarios de atención (lunes a viernes de 9:00 a 18:00).
+                                    - Disponibilidad de servicios (24/7)
+                                    - Precios de nuestros planes (0.50€/prueba 24hrs luego 50€/mes).
+                                    - Métodos de contacto oficiales (contact@quickgeo.mobi).
+                                    - Funciones principales de nuestra App QuickGeo y cómo utilizarlas.
+
+                                    Las caracteristicas de QuickGeo son las siguientes:
+
+                                    - Soporte Universal: Accede desde cualquier dispositivo sin importar la marca o el sistema que uses, la plataforma se adapta para ofrecerte la mejor experiencia.
+                                    - Localización precisa: Encuentra cualquier número con exactitud en segundos desde cualquier lugar. Funciona con todas las redes móviles sin importar la operadora.
+                                    - No se requiere instalación: Usa el servicio al instante sin descargar nada ni configurar tu dispositivo. Solo ingresa el número y obtén la información al momento
+                                    - Privacidad garantizada: Tu seguridad es nuestra prioridad navegás de forma completamente anónima sin rastreos para que disfrutes del servicio con total confianza.
+
+                                    Como funciona:
+
+                                    - Realizar una búsqueda en un número: Nuestra tecnología comienza a localizar e identificar el teléfono asociado.
+                                    - Solicitar una ubicación precisa: Enviamos un mensaje de texto al teléfono objetivo para localizarlo. Este mensaje es anónimo por defecto, pero puede ser personalizado para aumentar las posibilidades de éxito.
+                                    - Obtén tus resultados: Serás informado automáticamente con la dirección tan pronto como el destinatario confirme su ubicación.
+
+                                    Siempre debes mantener un tono cordial, profesional y enfocado en resolver las necesidades del cliente. 
+                                    Si alguna información solicitada no está disponible, invítalos amablemente a comunicarse directamente a través de nuestros canales oficiales.
+                                    Recuerda: No inventes información. Si no sabes la respuesta exacta, deriva al contacto oficial.
+                                    """),
+                    contents=user_message
+                )
+        response = ChatBotOut(response.text)
+        return jsonify(response.model_dump()), 200
+    except ValidationError as e:
+        statusCode = 400
+        response = ChatBotOut(response=str(e))
+        return jsonify(response.model_dump()), statusCode
+    except Exception as e:
+        statusCode = 500
+        response = ChatBotOut(response=str(e))
+        return jsonify(response.model_dump()), statusCode
+
 def exist_user(email, password):
     # Realiza la consulta para verificar si el correo electrónico ya existe
     response = supabase.table("users").select("id").eq("email", email).eq("password",password).execute()
@@ -319,11 +371,6 @@ def build_template(name,email,password):
     # Renderizar la plantilla con los datos
     html_content = template.render(datos)
     return html_content
-
-def generate_password(longitud=9):
-    # Definir los caracteres permitidos
-    caracteres = string.ascii_letters + string.digits + " $_()#!?*"
-    # Generar la contraseña aleatoria
     contraseña = ''.join(random.choice(caracteres) for _ in range(longitud))
     return contraseña
 
