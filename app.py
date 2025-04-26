@@ -273,9 +273,9 @@ def location_requests():
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    data = request.json
-    user_message = data.get("message", "")
-
+    statusCode:int
+    data = ChatBot.model_validate(request.json)
+    user_message = data.message
     try:
         response = client.models.generate_content(
                     model="gemini-2.0-flash",
@@ -310,7 +310,7 @@ def chat():
                                     """),
                     contents=user_message
                 )
-        response = ChatBotOut(response.text)
+        response = ChatBotOut(response=response.text)
         return jsonify(response.model_dump()), 200
     except ValidationError as e:
         statusCode = 400
