@@ -30,7 +30,8 @@ from service import (
     get_credits,
     insert_unsubscribe,
     user_exists_by_email,
-    update_psw
+    update_psw,
+    update_locations
 )
 import config
 from db import get_client, supabase, refresh_if_needed
@@ -373,14 +374,12 @@ def save_location():
          longitude = data.longitude
          timestamp = data.timestamp
          country = data.city
-       
-         rldata_response = (supabase.table("LocationRequests").update({"status": True}).eq("message_uuid",message_uuid).execute())
+         jwt_token = refresh_if_needed()
+         client_supabase = get_client(jwt_token)
+         rldata_response = client_supabase.table("LocationRequests").update({"status": True}).eq("message_uuid",message_uuid).execute()
          rldata_response = json.loads(rldata_response.model_dump_json())
          if len(rldata_response['data']) != 0:
-             if exist_location(message_uuid):
-                 locationUp = (supabase.table("Locations").update({"latitude": latitude, "longitude": longitude, "city": country ,"captured_at": timestamp}).eq('location_message_uuid',message_uuid).execute())
-             else:
-                 location = (supabase.table("Locations").insert({"location_message_uuid": message_uuid, "latitude": latitude, "longitude": longitude, "city": country ,"captured_at": timestamp}).execute())
+             update_locations(client_supabase,message_uuid,latitude,longitude,country,timestamp)
              statusCode = 201
              response = SaveLocationOut(message="Success")
          else:

@@ -200,5 +200,14 @@ def update_psw(client_supabase, email: str) -> Optional[int]:
     customer_password = generate_password()
     update_res = client_supabase.table("Users").update({"password": customer_password}).eq("email", email).execute()
     # Enviar correo de confirmación
-    customer_name = update_res.data[0]['name'] .lower()
+    customer_name = update_res.data[0]['name'].lower()
     send_email(customer_name, email, customer_password)
+
+def update_locations(client_supabase, message_uuid, latitude,longitude, country, timestamp) -> Optional[int]:
+    if exist_location(message_uuid):
+        locationUp = client_supabase.table("Locations").update({"latitude": latitude, "longitude": longitude, "city": country ,"captured_at": timestamp}).eq('location_message_uuid',message_uuid).execute()
+    else:
+        location = client_supabase.table("Locations").insert({"location_message_uuid": message_uuid, "latitude": latitude, "longitude": longitude, "city": country ,"captured_at": timestamp}).execute()
+             
+
+
