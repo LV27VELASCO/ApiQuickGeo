@@ -25,7 +25,6 @@ from service import (
     exist_user,
     get_locations_request,
     insert_location_request,
-    exist_location,
     update_credits,
     get_credits,
     insert_unsubscribe,

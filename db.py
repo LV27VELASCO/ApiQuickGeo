@@ -3,7 +3,6 @@ from supabase import Client, create_client
 import config
 import time
 
-
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 SUPABASE_EMAIL = os.environ.get("SUPABASE_EMAIL")

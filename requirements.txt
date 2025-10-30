@@ -9,11 +9,11 @@ blinker==1.9.0
 opencage==3.0.4
 folium==0.19.3
 phonenumbers==8.13.52
-pydantic==2.10.4
 gunicorn==23.0.0
 vonage
 python-dotenv
-supabase
+supabase>=2.4.0
+pydantic>=2.6.0
 stripe
 google-genai
 resend
