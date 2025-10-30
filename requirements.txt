@@ -16,3 +16,4 @@ python-dotenv
 supabase
 stripe
 google-genai
+resend

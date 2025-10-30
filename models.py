@@ -18,6 +18,8 @@ class SendSmsInput(BaseModel):
     code:str
     phone_number: str
     code_country:str
+    message:str
+    credits:int
 
 # Modelo de salida send-sms
 class SendSmsOut(BaseModel):
@@ -75,3 +77,15 @@ class ChatBot(BaseModel):
 
 class ChatBotOut(BaseModel):
     response:str
+
+class Unsubscribe(BaseModel):
+    email:str
+
+class resUnsubscribe(BaseModel):
+    message:str
+
+class ResetPsw(BaseModel):
+    email:str
+
+class resResetPsw(BaseModel):
+    message:str
