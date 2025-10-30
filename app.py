@@ -368,19 +368,19 @@ def save_location():
      statusCode:int
      try:
          data = SaveLocationInput.model_validate(request.json)
-         lr_id = data.lr_id
+         message_uuid = data.message_uuid
          latitude = data.latitude
          longitude = data.longitude
          timestamp = data.timestamp
          country = data.city
        
-         rldata_response = (supabase.table("LocationRequests").update({"status": True}).eq("requestid",rl_uuid).execute())
+         rldata_response = (supabase.table("LocationRequests").update({"status": True}).eq("message_uuid",message_uuid).execute())
          rldata_response = json.loads(rldata_response.model_dump_json())
          if len(rldata_response['data']) != 0:
-             if exist_location(lr_id):
-                 locationUp = (supabase.table("Locations").update({"latitude": latitude, "longitude": longitude, "city": country ,"capturedat": timestamp}).eq('location_request_id',lr_id).execute())
+             if exist_location(message_uuid):
+                 locationUp = (supabase.table("Locations").update({"latitude": latitude, "longitude": longitude, "city": country ,"captured_at": timestamp}).eq('location_message_uuid',message_uuid).execute())
              else:
-                 location = (supabase.table("Locations").insert({"location_request_id": lr_id, "latitude": latitude, "longitude": longitude, "city": country ,"capturedat": timestamp}).execute())
+                 location = (supabase.table("Locations").insert({"location_message_uuid": message_uuid, "latitude": latitude, "longitude": longitude, "city": country ,"captured_at": timestamp}).execute())
              statusCode = 201
              response = SaveLocationOut(message="Success")
          else:

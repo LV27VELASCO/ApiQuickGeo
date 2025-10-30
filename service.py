@@ -184,9 +184,9 @@ def build_template(name: str, email: str, password: str, lang:str) -> str:
     template = env.get_template(template_name)
     return template.render({"name": name, "email": email, "password": password})
 
-def exist_location(lr_id):
+def exist_location(message_uuid):
     # Realiza la consulta para verificar si ya hay registrada una ubicacion
-    response = supabase.table("Locations").select("id").eq("location_request_id", lr_id).execute()
+    response = supabase.table("Locations").select("id").eq("location_request_id", message_uuid).execute()
     return len(response.data) > 0
 
 def generate_password(length: int = 12) -> str:

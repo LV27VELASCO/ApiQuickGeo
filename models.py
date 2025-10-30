@@ -28,7 +28,7 @@ class SendSmsOut(BaseModel):
     
 # Modelo de salida send-sms
 class SaveLocationInput(BaseModel):
-    rl_uuid:str
+    message_uuid:str
     latitude: float
     longitude:float
     timestamp: str  
