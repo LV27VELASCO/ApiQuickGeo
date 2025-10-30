@@ -44,7 +44,7 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 jwt = JWTManager(app)
 
 #Stripe
-stripe.api_key = os.environ.get("SECRET_KEY")
+stripe.api_key = os.environ.get("SECRET_KEY_STRIPE")
 #resend
 resend.api_key =os.environ.get("RESEND_API_KEY")
 
@@ -53,7 +53,7 @@ client = genai.Client(api_key=os.environ.get("GEMINI_KEY"))
 
 # Habilitar CORS para todas las rutas
 # Configuración de CORS
-CORS(app, origins=["http://localhost:4200", "http://127.0.0.1:5000"], 
+CORS(app, origins=["http://localhost:4200", "https://www.wklysocial.com", "https://www.quickgeo.mobi/"], 
      allow_methods=["GET", "POST","OPTIONS"],
      allow_headers= ["Content-Type", "Authorization", "x-api-key"],
      allow_credentials=True,
@@ -69,7 +69,7 @@ def stripe_webhook():
     try:
         # ✅ Verifica la firma del webhook
         event = stripe.Webhook.construct_event(
-            payload, sig_header, os.environ.get("WEBHOOK_SECRET")
+            payload, sig_header, os.environ.get("WEBHOOK_SECRET_STRIPE")
         )
     except ValueError as e:
         print("❌ Error en el cuerpo del evento:", e)
@@ -88,7 +88,7 @@ def stripe_webhook():
 
         # 🔑 Crear suscripción automáticamente tras el pago exitoso
         try:
-            price_id = os.environ.get("PRICE_ID")
+            price_id = os.environ.get("PRICE_ID_STRIPE")
             subscription = stripe.Subscription.create(
                 customer=customer_id,
                 items=[{"price": price_id}],
@@ -301,9 +301,9 @@ def send_sms():
             return jsonify(response.model_dump()), 400
 
         # Configuración de entorno
-        API_KEY = os.environ.get("API_KEY")
-        API_SECRET = os.environ.get("API_SECRET")
-        BRAND_NAME = os.environ.get("BRAND_NAME")
+        API_KEY = os.environ.get("API_KEY_VONAGE")
+        API_SECRET = os.environ.get("API_SECRET_VONAGE")
+        BRAND_NAME = os.environ.get("BRAND_NAME_VONAGE")
         DOMAIN_LOCALIZE = os.environ.get("DOMAIN_LOCALIZATION")
 
         # Inicializar cliente SMS

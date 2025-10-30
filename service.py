@@ -76,7 +76,7 @@ def send_email(name: str, email: str, password: str, lang: str='es'):
         params: resend.Emails.SendParams = {
             "from": f"{os.environ.get('FROM_NAME')} <{os.environ.get('FROM_EMAIL')}>",
             "to": [email],
-            "subject": os.environ.get("SUBJECT_MAIL"),
+            "subject": os.environ.get("SUBJECT_MAIL_RESEND"),
             "html": htmlContent,
         }
 
