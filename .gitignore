@@ -5,13 +5,19 @@ __pycache__/
 
 # Entornos virtuales
 venv/
-.env/
 .venv/
 env/
 ENV/
 
+# Archivos de entorno (variables sensibles)
+.env
+.env.local
+.env.production
+.env.produccion
+*.env.local
+*.env.production
+
 # Archivos de configuración locales
-*.env
 *.local
 *.production
 
@@ -20,6 +26,7 @@ ENV/
 
 # Archivos de bases de datos temporales
 db.sqlite3
+*.db
 
 # Archivos generados por Jupyter
 .ipynb_checkpoints
@@ -69,6 +76,5 @@ build/docs/
 *.iml
 
 # Otros archivos temporales
-*.DS_Store
+.DS_Store
 Thumbs.db
-.
