@@ -53,7 +53,7 @@ client = genai.Client(api_key=os.environ.get("GEMINI_KEY"))
 
 # Habilitar CORS para todas las rutas
 # Configuración de CORS
-CORS(app, origins=["http://localhost:4200", "https://www.wklysocial.com", "https://www.quickgeo.mobi/"], 
+CORS(app, origins=["http://localhost:4200","https://www.quickgeo.mobi"], 
      allow_methods=["GET", "POST","OPTIONS"],
      allow_headers= ["Content-Type", "Authorization", "x-api-key"],
      allow_credentials=True,
@@ -181,19 +181,6 @@ def get_phone_info():
     except Exception as e:
         response = PhoneNumberOut(status=False,description=str(e),country="", operator="")
         return jsonify(response.model_dump()), 500
-
-# @app.route('/api/get-location', methods=['GET'])
-# def get_locations():
-#     try:
-#         return
-#     except ValidationError as e:
-#         statusCode = 400
-#         response = SaveLocationOut(code="04", description=str(e))
-#         return jsonify(response.model_dump()), statusCode
-#     except Exception as e:
-#         statusCode = 500
-#         response = SaveLocationOut(code="04", description=str(e))
-#         return jsonify(response.model_dump()), statusCode
 
 @app.route("/api/login", methods=["POST"])
 def login():
